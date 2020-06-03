@@ -162,4 +162,30 @@ mod tests {
         assert_eq!(res.is_ok(), true);
         println!("{:?}", res.unwrap());
     }
+
+    #[test]
+    fn test_query() {
+        let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        d.push("key/private.key");
+        let acc = super::wallet::Account::new(
+            d.to_str().unwrap(),
+            "counter327861",
+            "XC1111111111000000@xuper",
+        );
+        let bcname = String::from("xuper");
+        let chain = super::rpc::ChainClient::new(&bcname);
+        let mn = String::from("get");
+        let mut args = HashMap::new();
+        args.insert(String::from("key"), String::from("counter").into_bytes());
+
+        let resp = super::query_contract(&acc, &chain, &mn, args);
+        assert_eq!(resp.is_ok(), true);
+        println!("contract query result: {}", std::str::from_utf8(
+            &resp.ok().
+                unwrap().
+                get_response().
+                get_response()[0]).
+            unwrap()
+        );
+    }
 }
