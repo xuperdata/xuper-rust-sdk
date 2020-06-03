@@ -11,7 +11,7 @@ XuperChain 3.7
 - [x] load account
 - [x] Transfer
 - [x] Contract Invoke/Query
-- [] balance
+- [ ] balance
 
 ## Notices when serializing
 
