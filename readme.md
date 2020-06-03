@@ -6,12 +6,18 @@ A Xuperchain SDK by rust, especially for TEE(Intel SGX/ARM TZ) application.
 
 XuperChain 3.7
 
-## Notices
+## Function
 
+[x] load account
+[x] Transfer
+[x] Contract Invoke/Query
+
+## Notices when serializing
+
+In protos/xchain.rs:
 * Serialize enum as number: https://serde.rs/enum-number.html
-* #[serde(default)]  for header.from_node
+* #[serde(default)]
 * crate::wallet::* 
-* InvokeResponse:  skip original request
 
 
 ## Test
