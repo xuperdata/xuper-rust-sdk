@@ -288,42 +288,6 @@ impl From<&xchain::SignatureInfo> for SignatureInfoDef {
 }
 
 #[allow(non_snake_case)]
-pub struct TxOutputExtDef {
-    // message fields
-    pub bucket: ::std::string::String,
-    pub key: ::std::vec::Vec<u8>,
-    pub value: ::std::vec::Vec<u8>,
-}
-
-impl Serialize for TxOutputExtDef {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        use serde::ser::Error;
-        let mut j = String::new();
-
-        let ti = serde_json::to_string(&self.bucket).map_err(Error::custom)?;
-        j.push_str(&ti);
-        j.push('\n');
-        encode_bytes(&self.key, &mut j).unwrap();
-        encode_bytes(&self.value, &mut j).unwrap();
-
-        j.serialize(serializer)
-    }
-}
-
-impl From<&xchain::TxOutputExt> for TxOutputExtDef {
-    fn from(tie: &xchain::TxOutputExt) -> Self {
-        TxOutputExtDef {
-            bucket: tie.bucket.to_owned(),
-            key: tie.key.clone(),
-            value: tie.value.clone(),
-        }
-    }
-}
-
-#[allow(non_snake_case)]
 pub struct TransactionDef {
     pub tx_inputs: Vec<xchain::TxInput>,
     pub tx_outputs: Vec<TxOutputDef>,
@@ -401,8 +365,8 @@ impl TransactionDef {
             let ti = serde_json::to_string(&toe.bucket)?;
             j.push_str(&ti);
             j.push('\n');
-            encode_bytes(&toe.key, &mut j).unwrap();
-            encode_bytes(&toe.value, &mut j).unwrap();
+            encode_bytes(&toe.key, &mut j)?;
+            encode_bytes(&toe.value, &mut j)?;
         }
 
         // map 按照key的字母顺序排列
