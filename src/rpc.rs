@@ -13,7 +13,6 @@ use crate::protos::xchain_grpc;
 use crate::protos::xendorser;
 use crate::protos::xendorser_grpc;
 
-/// TODO : 去掉invoke_rpc_req和pre_sel_utxo_req，将其作为其他函数的参数
 #[derive(Default)]
 pub struct Message {
     pub to: String,
@@ -21,8 +20,6 @@ pub struct Message {
     pub fee: String,
     pub desc: String,
     pub frozen_height: i64,
-    pub invoke_rpc_req: xchain::InvokeRPCRequest,
-    pub pre_sel_utxo_req: xchain::PreExecWithSelectUTXORequest,
     pub initiator: String,
     pub auth_require: Vec<String>,
 }
@@ -42,10 +39,12 @@ impl ChainClient {
         //TODO: 设置超时，以及body大小
         let client_conf = Default::default();
         let client_endorser =
-            xendorser_grpc::xendorserClient::new_plain(host.as_str(), port, client_conf).unwrap();
+            xendorser_grpc::xendorserClient::new_plain(host.as_str(), port, client_conf)
+                .expect("new connection");
         let client_conf = Default::default();
         let client_xchain =
-            xchain_grpc::XchainClient::new_plain(host.as_str(), port_xchain, client_conf).unwrap();
+            xchain_grpc::XchainClient::new_plain(host.as_str(), port_xchain, client_conf)
+                .expect("new connection");
         ChainClient {
             chain_name: bcname.to_owned(),
             endorser: client_endorser,
@@ -86,8 +85,11 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         Ok(())
     }
 
-    pub fn pre_exec_with_select_utxo(&self) -> Result<xchain::PreExecWithSelectUTXOResponse> {
-        let request_data = serde_json::to_string(&self.msg.pre_sel_utxo_req)?;
+    pub fn pre_exec_with_select_utxo(
+        &self,
+        pre_sel_utxo_req: xchain::PreExecWithSelectUTXORequest,
+    ) -> Result<xchain::PreExecWithSelectUTXOResponse> {
+        let request_data = serde_json::to_string(&pre_sel_utxo_req)?;
         let mut endorser_request = xendorser::EndorserRequest::new();
         endorser_request.set_RequestName(String::from("PreExecWithFee"));
         endorser_request.set_BcName(self.client.chain_name.to_owned());
@@ -196,14 +198,14 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         tx.set_tx_inputs(protobuf::RepeatedField::from_vec(tx_inputs));
         tx.set_tx_outputs(protobuf::RepeatedField::from_vec(tx_outputs));
         tx.set_initiator(self.msg.initiator.to_owned());
-        tx.set_nonce(super::wallet::get_nonce());
+        tx.set_nonce(super::wallet::get_nonce()?);
 
         let digest_hash = super::wallet::make_tx_digest_hash(&tx)?;
 
         //sign the digest_hash
         let sig = self.account.sign(&digest_hash)?;
         let mut signature_info = xchain::SignatureInfo::new();
-        signature_info.set_PublicKey(self.account.public_key());
+        signature_info.set_PublicKey(self.account.public_key()?);
         signature_info.set_Sign(sig);
         let signature_infos = vec![signature_info; 1];
         tx.set_initiator_signs(protobuf::RepeatedField::from_vec(signature_infos));
@@ -259,14 +261,14 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         tx.set_tx_inputs(protobuf::RepeatedField::from_vec(tx_inputs));
         tx.set_tx_outputs(protobuf::RepeatedField::from_vec(tx_outputs));
         tx.set_initiator(self.msg.initiator.to_owned());
-        tx.set_nonce(super::wallet::get_nonce());
+        tx.set_nonce(super::wallet::get_nonce()?);
         tx.set_auth_require(protobuf::RepeatedField::from_vec(
             self.msg.auth_require.to_owned(),
         ));
 
-        tx.set_tx_inputs_ext(resp.response.clone().unwrap().inputs.clone());
-        tx.set_tx_outputs_ext(resp.response.clone().unwrap().outputs.clone());
-        tx.set_contract_requests(resp.response.clone().unwrap().requests.clone());
+        tx.set_tx_inputs_ext(resp.get_response().inputs.clone());
+        tx.set_tx_outputs_ext(resp.get_response().outputs.clone());
+        tx.set_contract_requests(resp.get_response().requests.clone());
 
         let digest_hash = super::wallet::make_tx_digest_hash(&tx)?;
 
@@ -274,7 +276,7 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         let sig = self.account.sign(&digest_hash)?;
         let mut signature_info = xchain::SignatureInfo::new();
 
-        signature_info.set_PublicKey(self.account.public_key());
+        signature_info.set_PublicKey(self.account.public_key()?);
         signature_info.set_Sign(sig);
         let signature_infos = vec![signature_info; 1];
         tx.set_initiator_signs(protobuf::RepeatedField::from_vec(signature_infos.clone()));
@@ -365,11 +367,14 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         Ok(resp)
     }
 
-    pub fn pre_exec(&self) -> Result<xchain::InvokeRPCResponse> {
+    pub fn pre_exec(
+        &self,
+        invoke_rpc_req: xchain::InvokeRPCRequest,
+    ) -> Result<xchain::InvokeRPCResponse> {
         let resp = self
             .client
             .xchain
-            .pre_exec(grpc::RequestOptions::new(), self.msg.invoke_rpc_req.clone())
+            .pre_exec(grpc::RequestOptions::new(), invoke_rpc_req)
             .drop_metadata();
         let resp = executor::block_on(resp).unwrap();
         self.check_resp_code(resp.get_response().get_responses())?;

@@ -60,8 +60,6 @@ pub fn transfer(
         to: to.to_owned(),
         fee: fee.to_string(),
         desc: desc.to_owned(),
-        pre_sel_utxo_req: pre_sel_utxo_req,
-        invoke_rpc_req: invoke_rpc_request,
         auth_require: auth_requires,
         amount: amount_bk,
         frozen_height: 0,
@@ -69,7 +67,7 @@ pub fn transfer(
     };
 
     let sess = rpc::Session::new(chain, account, &msg);
-    let mut pre_exe_with_sel_res = sess.pre_exec_with_select_utxo()?;
+    let mut pre_exe_with_sel_res = sess.pre_exec_with_select_utxo(pre_sel_utxo_req)?;
     sess.gen_complete_tx_and_post(&mut pre_exe_with_sel_res)
 }
 

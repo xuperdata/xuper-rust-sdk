@@ -54,8 +54,6 @@ pub fn invoke_contract(
         to: Default::default(),
         fee: Default::default(),
         desc: String::from("call from contract"),
-        pre_sel_utxo_req: pre_sel_utxo_req,
-        invoke_rpc_req: invoke_rpc_request,
         auth_require: auth_requires.clone(),
         amount: Default::default(),
         frozen_height: 0,
@@ -63,15 +61,13 @@ pub fn invoke_contract(
     };
 
     let sess = rpc::Session::new(chain, account, &msg);
-    let mut resp = sess.pre_exec_with_select_utxo()?;
+    let mut resp = sess.pre_exec_with_select_utxo(pre_sel_utxo_req)?;
 
     //TODO 代码优化
     let msg = rpc::Message {
         to: String::from(""),
         fee: resp.get_response().get_gas_used().to_string(),
         desc: String::from("call from contract"),
-        pre_sel_utxo_req: Default::default(),
-        invoke_rpc_req: Default::default(),
         auth_require: auth_requires,
         amount: Default::default(),
         frozen_height: 0,
@@ -119,8 +115,6 @@ pub fn query_contract(
         to: String::from(""),
         fee: String::from("0"),
         desc: String::from(""),
-        pre_sel_utxo_req: xchain::PreExecWithSelectUTXORequest::new(),
-        invoke_rpc_req: invoke_rpc_request,
         auth_require: auth_requires,
         amount: Default::default(),
         frozen_height: 0,
@@ -128,7 +122,7 @@ pub fn query_contract(
     };
 
     let sess = rpc::Session::new(client, account, &msg);
-    sess.pre_exec()
+    sess.pre_exec(invoke_rpc_request)
 }
 
 #[cfg(test)]
@@ -180,12 +174,9 @@ mod tests {
 
         let resp = super::query_contract(&acc, &chain, &mn, args);
         assert_eq!(resp.is_ok(), true);
-        println!("contract query result: {}", std::str::from_utf8(
-            &resp.ok().
-                unwrap().
-                get_response().
-                get_response()[0]).
-            unwrap()
+        println!(
+            "contract query result: {}",
+            std::str::from_utf8(&resp.ok().unwrap().get_response().get_response()[0]).unwrap()
         );
     }
 }

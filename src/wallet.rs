@@ -26,10 +26,11 @@ pub struct Account {
 impl Account {
     pub fn new(path: &str, contract_name: &str, contract_account: &str) -> Self {
         //加载私钥: features: normal | sgx | trustzone
-        let p = xchain_crypto::account::get_ecdsa_private_key_from_file(path).unwrap();
+        let p = xchain_crypto::account::get_ecdsa_private_key_from_file(path).expect("load key");
         let alg = &xchain_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
         let pk = xchain_crypto::account::PublicKey::new(alg, p.public_key());
-        let address = xchain_crypto::account::address::get_address_from_public_key(&pk).unwrap();
+        let address =
+            xchain_crypto::account::address::get_address_from_public_key(&pk).expect("load key");
         Account {
             address: address,
             path: path.to_string(),
@@ -51,29 +52,29 @@ impl Account {
         Ok(())
     }
 
-    pub fn public_key(&self) -> String {
-        let p = xchain_crypto::account::get_ecdsa_private_key_from_file(&self.path).unwrap();
-        xchain_crypto::account::json_key::get_ecdsa_public_key_json_format_in_go(&p).unwrap()
+    pub fn public_key(&self) -> Result<String> {
+        let p = xchain_crypto::account::get_ecdsa_private_key_from_file(&self.path)?;
+        let res = xchain_crypto::account::json_key::get_ecdsa_public_key_json_format_in_go(&p)?;
+        Ok(res)
     }
 
     // TODO  把其他所有crypto相关的操作移动到这里
 }
 
-pub fn get_nonce() -> String {
+pub fn get_nonce() -> Result<String> {
     let t = super::consts::now_as_secs();
     let m: u32 = 100000000;
 
     let seed = xchain_crypto::hdwallet::rand::generate_seed_with_strength_and_keylen(
         xchain_crypto::hdwallet::rand::KeyStrength::HARD,
         64,
-    )
-    .unwrap();
+    )?;
     let mut same_seed = [0u8; 32];
     same_seed.copy_from_slice(&seed[..32]);
     let mut rng = StdRng::from_seed(same_seed);
     let r = rng.next_u32() % m;
 
-    format!("{}{:08}", t, r)
+    Ok(format!("{}{:08}", t, r))
 }
 
 fn encode_bytes(v: &Vec<u8>, buf: &mut String) -> Result<()> {
