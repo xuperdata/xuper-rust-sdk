@@ -16,6 +16,7 @@ pub mod protos;
 mod config;
 pub mod consts;
 pub mod contract;
+pub mod encoder;
 pub mod rpc;
 pub mod transfer;
 pub mod wallet;

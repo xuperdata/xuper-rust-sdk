@@ -34,8 +34,8 @@ pub struct EndorserRequest {
     pub RequestName: ::std::string::String,
     pub BcName: ::std::string::String,
     pub Fee: ::protobuf::SingularPtrField<super::xchain::Transaction>,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub RequestData: ::std::vec::Vec<u8>,
     // special fields
     #[cfg_attr(feature = "with-serde", serde(skip))]

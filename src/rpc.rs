@@ -200,7 +200,7 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         tx.set_initiator(self.msg.initiator.to_owned());
         tx.set_nonce(super::wallet::get_nonce()?);
 
-        let digest_hash = super::wallet::make_tx_digest_hash(&tx)?;
+        let digest_hash = super::encoder::make_tx_digest_hash(&tx)?;
 
         //sign the digest_hash
         let sig = self.account.sign(&digest_hash)?;
@@ -210,7 +210,7 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         let signature_infos = vec![signature_info; 1];
         tx.set_initiator_signs(protobuf::RepeatedField::from_vec(signature_infos));
 
-        tx.set_txid(super::wallet::make_transaction_id(&tx)?);
+        tx.set_txid(super::encoder::make_transaction_id(&tx)?);
         Ok(tx)
     }
 
@@ -270,7 +270,7 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         tx.set_tx_outputs_ext(resp.get_response().outputs.clone());
         tx.set_contract_requests(resp.get_response().requests.clone());
 
-        let digest_hash = super::wallet::make_tx_digest_hash(&tx)?;
+        let digest_hash = super::encoder::make_tx_digest_hash(&tx)?;
 
         //sign the digest_hash
         let sig = self.account.sign(&digest_hash)?;
@@ -284,11 +284,10 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
             tx.set_auth_require_signs(protobuf::RepeatedField::from_vec(signature_infos));
         }
 
-        tx.set_txid(super::wallet::make_transaction_id(&tx)?);
+        tx.set_txid(super::encoder::make_transaction_id(&tx)?);
         Ok(tx)
     }
 
-    // TODO BUG
     pub fn compliance_check(
         &self,
         tx: &xchain::Transaction,
@@ -345,7 +344,7 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         let end_sign = self.compliance_check(&tx, &cctx)?;
 
         tx.auth_require_signs.push(end_sign);
-        tx.set_txid(super::wallet::make_transaction_id(&tx)?);
+        tx.set_txid(super::encoder::make_transaction_id(&tx)?);
         self.post_tx(&tx)?;
         Ok(hex::encode(tx.txid))
     }

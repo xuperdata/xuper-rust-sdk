@@ -4333,8 +4333,8 @@ pub struct TxInput {
     // message fields
     pub ref_txid: ::std::vec::Vec<u8>,
     pub ref_offset: i32,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub from_addr: ::std::vec::Vec<u8>,
     pub amount: ::std::vec::Vec<u8>,
     pub frozen_height: i64,
@@ -4653,11 +4653,11 @@ impl ::protobuf::reflect::ProtobufValue for TxInput {
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub struct TxOutput {
     // message fields
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub amount: ::std::vec::Vec<u8>,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub to_addr: ::std::vec::Vec<u8>,
     pub frozen_height: i64,
     // special fields
@@ -5110,7 +5110,7 @@ pub struct Transaction {
     pub txid: ::std::vec::Vec<u8>,
     pub blockid: ::std::vec::Vec<u8>,
     pub tx_inputs: ::protobuf::RepeatedField<TxInput>,
-    #[serde(skip_serializing_if = "crate::wallet::is_empty")]
+    #[serde(skip_serializing_if = "crate::encoder::is_empty")]
     pub tx_outputs: ::protobuf::RepeatedField<TxOutput>,
     pub desc: ::std::vec::Vec<u8>,
     pub coinbase: bool,
@@ -5120,14 +5120,14 @@ pub struct Transaction {
     pub autogen: bool,
     pub tx_inputs_ext: ::protobuf::RepeatedField<TxInputExt>,
     pub tx_outputs_ext: ::protobuf::RepeatedField<TxOutputExt>,
-    #[serde(skip_serializing_if = "crate::wallet::is_empty")]
+    #[serde(skip_serializing_if = "crate::encoder::is_empty")]
     pub contract_requests: ::protobuf::RepeatedField<InvokeRequest>,
     pub initiator: ::std::string::String,
-    #[serde(skip_serializing_if = "crate::wallet::is_empty")]
+    #[serde(skip_serializing_if = "crate::encoder::is_empty")]
     pub auth_require: ::protobuf::RepeatedField<::std::string::String>,
-    #[serde(skip_serializing_if = "crate::wallet::is_empty")]
+    #[serde(skip_serializing_if = "crate::encoder::is_empty")]
     pub initiator_signs: ::protobuf::RepeatedField<SignatureInfo>,
-    #[serde(skip_serializing_if = "crate::wallet::is_empty")]
+    #[serde(skip_serializing_if = "crate::encoder::is_empty")]
     pub auth_require_signs: ::protobuf::RepeatedField<SignatureInfo>,
     pub received_timestamp: i64,
     pub xuper_sign: ::protobuf::SingularPtrField<XuperSignature>,
@@ -10300,18 +10300,18 @@ impl ::protobuf::reflect::ProtobufValue for RawUrl {
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub struct Utxo {
     // message fields
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub amount: ::std::vec::Vec<u8>,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub toAddr: ::std::vec::Vec<u8>,
     #[serde(default)]
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub toPubkey: ::std::vec::Vec<u8>,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub refTxid: ::std::vec::Vec<u8>,
     #[serde(default)]
     pub refOffset: i32,
@@ -18255,8 +18255,8 @@ pub struct InvokeRequest {
     pub module_name: ::std::string::String,
     pub contract_name: ::std::string::String,
     pub method_name: ::std::string::String,
-    #[serde(serialize_with = "crate::wallet::serialize_ordered_map")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_ordered_map")]
+    #[serde(serialize_with = "crate::encoder::serialize_ordered_map")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_ordered_map")]
     pub args: ::std::collections::HashMap<::std::string::String, ::std::vec::Vec<u8>>,
     pub resource_limits: ::protobuf::RepeatedField<ResourceLimit>,
     pub amount: ::std::string::String,
@@ -18637,8 +18637,8 @@ pub struct InvokeResponse {
     #[serde(default)]
     pub outputs: ::protobuf::RepeatedField<TxOutputExt>,
     #[serde(default)]
-    #[serde(serialize_with = "crate::wallet::serialize_bytes_arr")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes_arr")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes_arr")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes_arr")]
     pub response: ::protobuf::RepeatedField<::std::vec::Vec<u8>>,
     #[serde(default)]
     pub gas_used: i64,
@@ -19137,11 +19137,11 @@ impl ::protobuf::reflect::ProtobufValue for InvokeResponse {
 pub struct TxInputExt {
     // message fields
     pub bucket: ::std::string::String,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub key: ::std::vec::Vec<u8>,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub ref_txid: ::std::vec::Vec<u8>,
     #[serde(default)]
     pub ref_offset: i32,
@@ -19427,11 +19427,11 @@ impl ::protobuf::reflect::ProtobufValue for TxInputExt {
 pub struct TxOutputExt {
     // message fields
     pub bucket: ::std::string::String,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub key: ::std::vec::Vec<u8>,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub value: ::std::vec::Vec<u8>,
     // special fields
     #[cfg_attr(feature = "with-serde", serde(skip))]
@@ -19681,8 +19681,8 @@ impl ::protobuf::reflect::ProtobufValue for TxOutputExt {
 pub struct SignatureInfo {
     // message fields
     pub PublicKey: ::std::string::String,
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub Sign: ::std::vec::Vec<u8>,
     // special fields
     #[cfg_attr(feature = "with-serde", serde(skip))]
@@ -21672,10 +21672,10 @@ impl ::protobuf::reflect::ProtobufValue for IdentityAuths {
 pub struct ResourceLimit {
     // message fields
     #[serde(rename = "type", default)]
-    #[serde(skip_serializing_if = "crate::wallet::is_CPU")]
+    #[serde(skip_serializing_if = "crate::encoder::is_CPU")]
     pub field_type: ResourceType,
     #[serde(default)]
-    #[serde(skip_serializing_if = "crate::wallet::is_zero")]
+    #[serde(skip_serializing_if = "crate::encoder::is_zero")]
     pub limit: i64,
     // special fields
     #[cfg_attr(feature = "with-serde", serde(skip))]
@@ -23964,8 +23964,8 @@ pub struct ContractResponse {
     #[serde(default)]
     pub message: ::std::string::String,
     #[serde(default)]
-    #[serde(serialize_with = "crate::wallet::serialize_bytes")]
-    #[serde(deserialize_with = "crate::wallet::deserialize_bytes")]
+    #[serde(serialize_with = "crate::encoder::serialize_bytes")]
+    #[serde(deserialize_with = "crate::encoder::deserialize_bytes")]
     pub body: ::std::vec::Vec<u8>,
     // special fields
     #[cfg_attr(feature = "with-serde", serde(skip))]
