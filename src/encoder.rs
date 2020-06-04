@@ -1,3 +1,10 @@
+/// 本文件主要是为了兼容golang的json序列化格式，主要注意事项如下:
+/// 1. 序列顺序
+/// 2. 枚举是以数字存储，枚举值是0的不会被序列化
+/// 3. 默认值初始化的字段不会被序列化，例如0，空字符串，但是空数组是null
+/// 4. map按照字典序排列之后再序列化
+/// 5. bytes需要base64
+/// 6. https://github.com/golang/go/issues/28154   bigint 在golang序列化成json之后还是整数，但是float是字符串
 use crate::errors::*;
 use crate::protos::xchain;
 use serde::de::{MapAccess, Visitor};
