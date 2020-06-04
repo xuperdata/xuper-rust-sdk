@@ -8,9 +8,10 @@ XuperChain 3.7
 
 ## Function
 
-[x] load account
-[x] Transfer
-[x] Contract Invoke/Query
+- [x] load account
+- [x] Transfer
+- [x] Contract Invoke/Query
+- [ ] balance
 
 ## Notices when serializing
 
