@@ -1,17 +1,19 @@
 use futures::executor;
-/// 负责通信，运行在TEE之外
-use grpc::ClientStubExt;
 
-use num_traits::FromPrimitive;
+use num_traits;
+use num_bigint;
+use serde_json;
+
 use std::ops::AddAssign;
 use std::ops::Sub;
+use num_traits::cast::FromPrimitive;
+
 
 use crate::config;
 use crate::errors::{Error, ErrorKind, Result};
 use crate::protos::xchain;
-use crate::protos::xchain_grpc;
 use crate::protos::xendorser;
-use crate::protos::xendorser_grpc;
+use crate::xchain::XChainClient;
 
 #[derive(Default)]
 pub struct Message {
@@ -24,43 +26,16 @@ pub struct Message {
     pub auth_require: Vec<String>,
 }
 
-pub struct ChainClient {
-    pub chain_name: String,
-    endorser: xendorser_grpc::xendorserClient,
-    xchain: xchain_grpc::XchainClient,
-}
-
-#[allow(dead_code)]
-impl ChainClient {
-    pub fn new(bcname: &String) -> Self {
-        let host = config::CONFIG.read().unwrap().node.clone();
-        let port = config::CONFIG.read().unwrap().endorse_port;
-        let port_xchain = config::CONFIG.read().unwrap().node_port;
-        //TODO: 设置超时，以及body大小
-        let client_conf = Default::default();
-        let client_endorser =
-            xendorser_grpc::xendorserClient::new_plain(host.as_str(), port, client_conf)
-                .expect("new connection");
-        let client_conf = Default::default();
-        let client_xchain =
-            xchain_grpc::XchainClient::new_plain(host.as_str(), port_xchain, client_conf)
-                .expect("new connection");
-        ChainClient {
-            chain_name: bcname.to_owned(),
-            endorser: client_endorser,
-            xchain: client_xchain,
-        }
-    }
-}
-
 pub struct Session<'a, 'b, 'c> {
-    client: &'a ChainClient,
+    client: &'a XChainClient,
+
     account: &'b super::wallet::Account,
+
     msg: &'c Message,
 }
 
 impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
-    pub fn new(c: &'a ChainClient, w: &'b super::wallet::Account, m: &'c Message) -> Self {
+    pub fn new(c: &'a XChainClient, w: &'b super::wallet::Account, m: &'c Message) -> Self {
         Session {
             msg: m,
             client: c,
@@ -169,6 +144,7 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
                 .compliance_check_endorse_service_fee as i64,
         )
         .ok_or(Error::from(ErrorKind::ParseError))?;
+
         let (tx_inputs, tx_output) = self.generate_tx_input(resp.get_utxoOutput(), &total_need)?;
         let mut tx_outputs = self.generate_tx_output(
             &config::CONFIG
@@ -209,7 +185,6 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         signature_info.set_Sign(sig);
         let signature_infos = vec![signature_info; 1];
         tx.set_initiator_signs(protobuf::RepeatedField::from_vec(signature_infos));
-
         tx.set_txid(super::encoder::make_transaction_id(&tx)?);
         Ok(tx)
     }
