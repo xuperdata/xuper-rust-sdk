@@ -1,5 +1,5 @@
 fn main() {
-
+    /*
     protoc_rust_grpc::Codegen::new()
         .out_dir("src/protos")
         .input("src/protos/chainedbft.proto")
