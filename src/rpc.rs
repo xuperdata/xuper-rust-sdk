@@ -169,6 +169,7 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
                 .compliance_check_endorse_service_fee as i64,
         )
         .ok_or(Error::from(ErrorKind::ParseError))?;
+
         let (tx_inputs, tx_output) = self.generate_tx_input(resp.get_utxoOutput(), &total_need)?;
         let mut tx_outputs = self.generate_tx_output(
             &config::CONFIG
@@ -209,7 +210,6 @@ impl<'a, 'b, 'c> Session<'a, 'b, 'c> {
         signature_info.set_Sign(sig);
         let signature_infos = vec![signature_info; 1];
         tx.set_initiator_signs(protobuf::RepeatedField::from_vec(signature_infos));
-
         tx.set_txid(super::encoder::make_transaction_id(&tx)?);
         Ok(tx)
     }

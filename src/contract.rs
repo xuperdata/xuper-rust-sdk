@@ -90,12 +90,14 @@ pub fn query_contract(
     invoke_req.set_args(args);
     let invoke_requests = vec![invoke_req; 1];
     let mut auth_requires = vec![];
+
     if !account.contract_account.is_empty() {
         let mut s = account.contract_account.to_owned();
         s.push_str("/");
         s.push_str(account.address.to_owned().as_str());
         auth_requires.push(s);
     };
+
     auth_requires.push(
         config::CONFIG
             .read()
@@ -142,11 +144,13 @@ mod tests {
         let bcname = String::from("xuper");
         let chain = super::rpc::ChainClient::new(&bcname);
         let mn = String::from("increase");
+
         let mut args = HashMap::new();
         args.insert(String::from("key"), String::from("counter").into_bytes());
 
         let txid = super::invoke_contract(&acc, &chain, &mn, args);
         println!("contract txid: {:?}", txid);
+
         assert_eq!(txid.is_ok(), true);
         let txid = txid.unwrap();
 
