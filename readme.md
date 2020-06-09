@@ -44,11 +44,12 @@ cargo test -- --test-threads 1
 计划暴露的函数为:
 
 * Ocall: crate::transfer::transfer, crate::contract::invoke/query_contract
-* Ecall: crate::wallet::new/sign 
+* Ecall: crate::wallet::Account::new/sign 
 
 TEE内部发起数据链上执行流程为: 
-1. TEE内部初始化Account（提前远程认证把秘钥放进去）；
-2. Ocall调用crate::contract::invoke/query_contract；
+1. TEE内部初始化Account（提前远程认证把秘钥放进去);
+2. 调用mesatee sdk加密合约方法的参数; 
+3. Ocall调用crate::contract::invoke/query_contract；
 > 1. 组装交易
-> 2. 调用ecall sign 进行交易签名
+> 2. 调用ecall sign进行交易签名
 > 3. 提交交易
