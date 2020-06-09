@@ -1,14 +1,14 @@
 use crate::errors::Result;
-use crate::{config, protos::xchain, rpc, wallet};
+use crate::{config, protos, session, wallet, xchain};
 
 /// account在chain上面给to转账amount，小费是fee，留言是desc
 pub fn invoke_contract(
     account: &wallet::Account,
-    chain: &rpc::ChainClient,
+    chain: &xchain::XChainClient,
     method_name: &String,
     args: std::collections::HashMap<String, Vec<u8>>,
 ) -> Result<String> {
-    let mut invoke_req = xchain::InvokeRequest::new();
+    let mut invoke_req = protos::xchain::InvokeRequest::new();
     invoke_req.set_module_name(String::from("wasm"));
     invoke_req.set_contract_name(account.contract_name.to_owned());
     invoke_req.set_method_name(method_name.to_owned());
@@ -32,7 +32,7 @@ pub fn invoke_contract(
             .to_owned(),
     );
 
-    let mut invoke_rpc_request = xchain::InvokeRPCRequest::new();
+    let mut invoke_rpc_request = protos::xchain::InvokeRPCRequest::new();
     invoke_rpc_request.set_bcname(chain.chain_name.to_owned());
     invoke_rpc_request.set_requests(protobuf::RepeatedField::from_vec(invoke_requests));
     invoke_rpc_request.set_initiator(account.address.to_owned());
@@ -44,13 +44,13 @@ pub fn invoke_contract(
         .compliance_check
         .compliance_check_endorse_service_fee;
 
-    let mut pre_sel_utxo_req = xchain::PreExecWithSelectUTXORequest::new();
+    let mut pre_sel_utxo_req = protos::xchain::PreExecWithSelectUTXORequest::new();
     pre_sel_utxo_req.set_bcname(chain.chain_name.to_owned());
     pre_sel_utxo_req.set_address(account.address.to_owned());
     pre_sel_utxo_req.set_totalAmount(total_amount as i64);
     pre_sel_utxo_req.set_request(invoke_rpc_request.clone());
 
-    let msg = rpc::Message {
+    let msg = session::Message {
         to: Default::default(),
         fee: Default::default(),
         desc: String::from("call from contract"),
@@ -60,11 +60,11 @@ pub fn invoke_contract(
         initiator: account.address.to_owned(),
     };
 
-    let sess = rpc::Session::new(chain, account, &msg);
+    let sess = session::Session::new(chain, account, &msg);
     let mut resp = sess.pre_exec_with_select_utxo(pre_sel_utxo_req)?;
 
     //TODO 代码优化
-    let msg = rpc::Message {
+    let msg = session::Message {
         to: String::from(""),
         fee: resp.get_response().get_gas_used().to_string(),
         desc: String::from("call from contract"),
@@ -73,17 +73,17 @@ pub fn invoke_contract(
         frozen_height: 0,
         initiator: account.address.to_owned(),
     };
-    let sess = rpc::Session::new(chain, account, &msg);
+    let sess = session::Session::new(chain, account, &msg);
     sess.gen_complete_tx_and_post(&mut resp)
 }
 
 pub fn query_contract(
     account: &wallet::Account,
-    client: &rpc::ChainClient,
+    client: &xchain::XChainClient,
     method_name: &String,
     args: std::collections::HashMap<String, Vec<u8>>,
-) -> Result<xchain::InvokeRPCResponse> {
-    let mut invoke_req = xchain::InvokeRequest::new();
+) -> Result<protos::xchain::InvokeRPCResponse> {
+    let mut invoke_req = protos::xchain::InvokeRequest::new();
     invoke_req.set_module_name(String::from("wasm"));
     invoke_req.set_contract_name(account.contract_name.to_owned());
     invoke_req.set_method_name(method_name.to_owned());
@@ -107,13 +107,13 @@ pub fn query_contract(
             .to_owned(),
     );
 
-    let mut invoke_rpc_request = xchain::InvokeRPCRequest::new();
+    let mut invoke_rpc_request = protos::xchain::InvokeRPCRequest::new();
     invoke_rpc_request.set_bcname(client.chain_name.to_owned());
     invoke_rpc_request.set_requests(protobuf::RepeatedField::from_vec(invoke_requests));
     invoke_rpc_request.set_initiator(account.address.to_owned());
     invoke_rpc_request.set_auth_require(protobuf::RepeatedField::from_vec(auth_requires.clone()));
 
-    let msg = rpc::Message {
+    let msg = session::Message {
         to: String::from(""),
         fee: String::from("0"),
         desc: String::from(""),
@@ -123,7 +123,7 @@ pub fn query_contract(
         initiator: account.address.to_owned(),
     };
 
-    let sess = rpc::Session::new(client, account, &msg);
+    let sess = session::Session::new(client, account, &msg);
     sess.pre_exec(invoke_rpc_request)
 }
 
@@ -142,7 +142,7 @@ mod tests {
             "XC1111111111000000@xuper",
         );
         let bcname = String::from("xuper");
-        let chain = super::rpc::ChainClient::new(&bcname);
+        let chain = super::session::ChainClient::new(&bcname);
         let mn = String::from("increase");
 
         let mut args = HashMap::new();
@@ -154,8 +154,8 @@ mod tests {
         assert_eq!(txid.is_ok(), true);
         let txid = txid.unwrap();
 
-        let msg: crate::rpc::Message = Default::default();
-        let sess = crate::rpc::Session::new(&chain, &acc, &msg);
+        let msg: crate::session::Message = Default::default();
+        let sess = crate::session::Session::new(&chain, &acc, &msg);
         let res = sess.query_tx(&txid);
         assert_eq!(res.is_ok(), true);
         println!("{:?}", res.unwrap());
@@ -171,7 +171,7 @@ mod tests {
             "XC1111111111000000@xuper",
         );
         let bcname = String::from("xuper");
-        let chain = super::rpc::ChainClient::new(&bcname);
+        let chain = super::session::ChainClient::new(&bcname);
         let mn = String::from("get");
         let mut args = HashMap::new();
         args.insert(String::from("key"), String::from("counter").into_bytes());

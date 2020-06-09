@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 extern crate protobuf;
 extern crate serde_yaml;
 
@@ -7,16 +9,10 @@ extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
 
-extern crate base64;
-extern crate serde_json;
-
 pub mod errors;
-pub mod protos;
-
-mod config;
-pub mod consts;
-pub mod contract;
 pub mod encoder;
-pub mod rpc;
-pub mod transfer;
-pub mod wallet;
+pub mod config;
+pub mod protos;
+pub mod xchain;
+
+
